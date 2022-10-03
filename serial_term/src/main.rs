@@ -32,11 +32,14 @@ fn main() {
 
     // GUI
     let app = app::App::default();
-    let mut wind = Window::default()
-        .with_size(400, 200)
-        .center_screen()
-        .with_label("SerialTerm");
-    let output_widget = MultilineOutput::default().with_size(wind.width(), 100);
+    let mut wind_rc = Rc::new(
+        Window::default()
+            .with_size(400, 200)
+            .center_screen()
+            .with_label("SerialTerm"),
+    );
+    let wind = Rc::get_mut(&mut wind_rc).unwrap();
+    let mut output_widget = MultilineOutput::default().with_size(wind.width(), 100);
     let mut serial_port_selector = Choice::default()
         .with_size(100, 20)
         .below_of(&output_widget, 32);
@@ -66,6 +69,13 @@ fn main() {
     wind.make_resizable(true);
     wind.end();
     wind.show();
+
+    let window_update_timer = timer::Timer::new();
+    let _guard =
+        window_update_timer.schedule_repeating(chrono::Duration::milliseconds(500), move || {
+            let _result = output_widget.append("test\n");
+        });
+
     /* Event handling */
     app.run().unwrap();
 }
