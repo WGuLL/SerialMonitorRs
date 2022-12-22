@@ -37,6 +37,7 @@ impl eframe::App for SerialAppCore {
             );
 
             if serial_port_list.is_empty() {
+                self.serial_port = None;
                 return;
             }
 
@@ -46,11 +47,13 @@ impl eframe::App for SerialAppCore {
                     serial_port_list[self.selected_index].port_name.as_str(),
                     defaultbaudrate,
                 );
-                return;
+                if self.serial_port.is_none() {
+                    return;
+                }
             }
 
-            let serial_port_ptr = self.serial_port.as_ref().unwrap();
-            let serial_port_name = serial_port_ptr.as_ref().name().unwrap();
+            let serial_port_ptr = self.serial_port.as_ref().unwrap().as_ref();
+            let serial_port_name = serial_port_ptr.name().unwrap();
             if serial_port_list[self.selected_index].port_name != serial_port_name {
                 let defaultbaudrate = 9600;
                 self.open_port(
@@ -58,6 +61,13 @@ impl eframe::App for SerialAppCore {
                     defaultbaudrate,
                 );
             }
+
+            let _result = self
+                .serial_port
+                .as_mut()
+                .unwrap()
+                .as_mut()
+                .read_to_string(&mut self.text_buffer);
         });
     }
 }
