@@ -5,8 +5,8 @@ use std::string::String;
 #[derive(Default)]
 struct SerialAppCore {
     serial_port: Option<Box<dyn serialport::SerialPort>>,
-    textBuffer: String,
-    selectedIndex: usize,
+    text_buffer: String,
+    selected_index: usize,
 }
 
 impl SerialAppCore {
@@ -25,24 +25,39 @@ impl eframe::App for SerialAppCore {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Serial Monitor");
-            ui.add(egui::TextEdit::multiline(&mut self.textBuffer).interactive(false));
+            ui.add(egui::TextEdit::multiline(&mut self.text_buffer).interactive(false));
             let serial_port_list = serialport::available_ports().unwrap();
-            let mut serial_port_choice = egui::ComboBox::from_label("Serial port:");
-            /*           if self.serial_port.is_none()
-                       {
-            serial_port_choice.selected_text ("none");
-                       }
-                       else
-                       {
-            serial_port_choice.selected_text (serial_port.unwrapped ().);
-                       }
-            */
+            let serial_port_choice = egui::ComboBox::from_label("Serial port");
+
             serial_port_choice.show_index(
                 ui,
-                &mut self.selectedIndex,
+                &mut self.selected_index,
                 serial_port_list.len(),
                 |i| serial_port_list[i].port_name.clone(),
             );
+
+            if serial_port_list.is_empty() {
+                return;
+            }
+
+            if self.serial_port.is_none() {
+                let defaultbaudrate = 9600;
+                self.open_port(
+                    serial_port_list[self.selected_index].port_name.as_str(),
+                    defaultbaudrate,
+                );
+                return;
+            }
+
+            let serial_port_ptr = self.serial_port.as_ref().unwrap();
+            let serial_port_name = serial_port_ptr.as_ref().name().unwrap();
+            if serial_port_list[self.selected_index].port_name != serial_port_name {
+                let defaultbaudrate = 9600;
+                self.open_port(
+                    serial_port_list[self.selected_index].port_name.as_str(),
+                    defaultbaudrate,
+                );
+            }
         });
     }
 }
