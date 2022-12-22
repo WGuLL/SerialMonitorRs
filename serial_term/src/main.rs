@@ -1,4 +1,6 @@
 use eframe::egui;
+use egui::Color32;
+use egui::RichText;
 use serialport;
 use std::string::String;
 
@@ -10,14 +12,16 @@ struct SerialAppCore {
 }
 
 impl SerialAppCore {
-    pub fn open_port(&mut self, port_name: &str, baud_rate: u32) {
+    pub fn open_port(&mut self, port_name: &str, baud_rate: u32) -> Result<(), String> {
         // TODO assert baud rate is standard baud rate.
         // assert port_name not empty.
         let serial_port_builder = serialport::new(port_name, baud_rate);
         let serial_port_err_code = serial_port_builder.open();
         if serial_port_err_code.is_ok() {
             self.serial_port = Some(serial_port_err_code.unwrap());
+            return Ok(());
         }
+        return Err(serial_port_err_code.err().unwrap().description);
     }
 }
 
@@ -43,11 +47,12 @@ impl eframe::App for SerialAppCore {
 
             if self.serial_port.is_none() {
                 let defaultbaudrate = 9600;
-                self.open_port(
+                let result = self.open_port(
                     serial_port_list[self.selected_index].port_name.as_str(),
                     defaultbaudrate,
                 );
-                if self.serial_port.is_none() {
+                if result.is_err() {
+                    ui.colored_label(Color32::RED, RichText::new(result.err().unwrap()));
                     return;
                 }
             }
@@ -56,10 +61,14 @@ impl eframe::App for SerialAppCore {
             let serial_port_name = serial_port_ptr.name().unwrap();
             if serial_port_list[self.selected_index].port_name != serial_port_name {
                 let defaultbaudrate = 9600;
-                self.open_port(
+                let result = self.open_port(
                     serial_port_list[self.selected_index].port_name.as_str(),
                     defaultbaudrate,
                 );
+                if result.is_err() {
+                    ui.colored_label(Color32::RED, RichText::new(result.err().unwrap()));
+                    return;
+                }
             }
 
             let _result = self
