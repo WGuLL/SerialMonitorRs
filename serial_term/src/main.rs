@@ -1,6 +1,6 @@
+use crate::egui::Color32;
+use crate::egui::RichText;
 use eframe::egui;
-use egui::Color32;
-use egui::RichText;
 use serialport;
 use std::string::String;
 
