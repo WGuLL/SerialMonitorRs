@@ -1,7 +1,6 @@
 use crate::egui::Color32;
 use crate::egui::RichText;
 use eframe::egui;
-use serialport;
 use std::string::String;
 
 #[derive(Default)]
@@ -17,11 +16,11 @@ impl SerialAppCore {
         // assert port_name not empty.
         let serial_port_builder = serialport::new(port_name, baud_rate);
         let serial_port_err_code = serial_port_builder.open();
-        if serial_port_err_code.is_ok() {
-            self.serial_port = Some(serial_port_err_code.unwrap());
+        if let Ok(serial_port) = serial_port_err_code {
+            self.serial_port = Some(serial_port);
             return Ok(());
         }
-        return Err(serial_port_err_code.err().unwrap().description);
+        Err(serial_port_err_code.err().unwrap().description)
     }
 }
 
@@ -83,9 +82,9 @@ impl eframe::App for SerialAppCore {
 
 fn main() {
     let options = eframe::NativeOptions::default();
-    eframe::run_native(
+    let _error_code = eframe::run_native(
         "Serial Monitor",
         options,
-        Box::new(|_cc| Box::new(SerialAppCore::default())),
+        Box::new(|_cc| Box::<SerialAppCore>::default()),
     );
 }
