@@ -27,3 +27,4 @@ jobs:
       run: |
         cd serial_term
         cargo test --verbose
+        cargo clippy -- -D warnings
