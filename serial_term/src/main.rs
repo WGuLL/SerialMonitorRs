@@ -2,6 +2,7 @@ use crate::egui::Color32;
 use crate::egui::RichText;
 use eframe::egui;
 use std::string::String;
+use std::time::Duration;
 
 #[derive(Default)]
 struct SerialAppCore {
@@ -76,6 +77,8 @@ impl eframe::App for SerialAppCore {
                 .unwrap()
                 .as_mut()
                 .read_to_string(&mut self.text_buffer);
+
+            ctx.request_repaint_after(Duration::from_secs(1));
         });
     }
 }
